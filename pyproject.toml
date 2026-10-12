@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "SFCmodeler"
+dynamic = ["version"]
+description = "A lightweight Python solver for Post-Keynesian Stock-Flow Consistent (SFC) or other time-series models, built on top of Pandas and Sympy."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "Apache-2.0"
+authors = [{name = "slevey087", email = "slevey087@gmail.com"}]
+keywords = ['nbdev']
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+]
+dependencies = []
+
+[project.urls]
+Repository = "https://github.com/slevey087/SFCmodeler"
+Documentation = "https://slevey087.github.io/SFCmodeler/"
+
+[project.entry-points.nbdev]
+SFCmodeler = "SFCmodeler._modidx:d"
+
+[tool.setuptools.dynamic]
+version = {attr = "SFCmodeler.__version__"}
+
+[tool.setuptools.packages.find]
+include = ["SFCmodeler"]
+
+[tool.nbdev]

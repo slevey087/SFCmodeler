@@ -1,0 +1,14 @@
+project:
+  output-dir: _docs
+
+website:
+  title: "SFCmodeler"
+  site-url: "https://slevey087.github.io/SFCmodeler"
+  description: "A lightweight Python solver for Post-Keynesian Stock-Flow Consistent (SFC) or other time-series models, built on top of Pandas and Sympy."
+  repo-branch: main
+  repo-url: "https://github.com/slevey087/SFCmodeler"
+
+format-links:
+  - html
+  - format: commonmark
+    text: Markdown
