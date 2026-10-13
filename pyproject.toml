@@ -9,13 +9,22 @@ description = "A lightweight Python solver for Post-Keynesian Stock-Flow Consist
 readme = "README.md"
 requires-python = ">=3.10"
 license = "Apache-2.0"
-authors = [{name = "slevey087", email = "slevey087@gmail.com"}]
+authors = [{name = "Sam Levey", email = "slevey087@gmail.com"}]
 keywords = ['nbdev']
 classifiers = [
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
 ]
-dependencies = []
+dependencies = [
+    "pandas",
+    "numpy",
+    "sympy",
+    "tqdm",
+    "matplotlib",
+    "scipy",
+    "ipywidgets",
+    "tabulate"
+]
 
 [project.urls]
 Repository = "https://github.com/slevey087/SFCmodeler"
@@ -29,5 +38,8 @@ version = {attr = "SFCmodeler.__version__"}
 
 [tool.setuptools.packages.find]
 include = ["SFCmodeler"]
+
+[project.optional-dependencies]
+dev = ["pysolve3"]
 
 [tool.nbdev]
