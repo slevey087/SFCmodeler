@@ -8,5 +8,6 @@ __all__ = []
 from .SFCmodel import SFCmodel
 from .term import Term, Variable, Parameter
 from .modelresults import ModelResults
+from .misc import d, if_true
 
 __all__  = ['SFCmodel','ModelResults','Term','Parameter','Variable',"d","if_true"]

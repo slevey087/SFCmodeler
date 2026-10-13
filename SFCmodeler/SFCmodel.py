@@ -8,6 +8,7 @@ Docs: https://slevey087.github.io/SFCmodeler/modeler.html.md"""
 __all__ = ['SFCmodel']
 
 # %% ../nbs/01_modeler.ipynb #f3b2ebd4-3e14-44b6-8314-86af253c2884
+import warnings
 import numpy as np
 import pandas as pd
 import sympy as sp
