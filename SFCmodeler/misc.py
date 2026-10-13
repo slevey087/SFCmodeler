@@ -7,6 +7,9 @@ Docs: https://slevey087.github.io/SFCmodeler/misc.html.md"""
 # %% auto #0
 __all__ = ['if_true', 'd']
 
+# %% ../nbs/04_misc.ipynb #91f7e371-01a3-4dfa-8b17-0680cf4bb3e8
+import sympy as sp
+
 # %% ../nbs/04_misc.ipynb #b4c18471-da2c-4aab-b799-46b987163ab3
 def if_true(conditional):
   return sp.Piecewise((1,conditional),(0,True))
