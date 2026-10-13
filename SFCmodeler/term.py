@@ -15,9 +15,11 @@ from sympy.printing.latex import translate
 
 # %% ../nbs/02_term.ipynb #7eb15360-b4d3-42e9-bfc4-db0b5685224a
 class Term(sp.Symbol):
+  "A symbolic term in an SFC model."
   default_value = np.nan
 
   def __new__(cls, name, description=None, initial_value=None, lag=0, unlagged=None, *args, **kwargs):
+    "Create a term."
     symbol_name = f"{name}" if lag == 0 else f"{name}_{{-{-lag}}}"
     obj = super().__new__(cls, symbol_name)
     obj.base_name = name
@@ -48,11 +50,15 @@ class Term(sp.Symbol):
 
 # %% ../nbs/02_term.ipynb #b245b1fa-3713-4a9c-9216-8a0b7605ab42
 class Parameter(Term):
+  'An exogenous value, not calculated by the solver.'
+    
   pass
 
 
 # %% ../nbs/02_term.ipynb #daa7c942-afc5-41e2-9c19-02f41f96c79c
 class Variable(Term):
+  "An endogenous value, solved each timestep."
+    
   def __lshift__(self, other):
     return sp.Eq(self, other)
 

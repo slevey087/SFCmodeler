@@ -10,6 +10,7 @@ __all__ = ['ModelResults']
 # %% ../nbs/03_modelresults.ipynb #a5d2a149-4233-4c14-b252-b41c02cf619c
 import pandas as pd
 import sympy as sp
+import matplotlib.pyplot as plt
 
 # %% ../nbs/03_modelresults.ipynb #b8da32ca-3028-47e9-9690-53d7363f214e
 class ModelResults():

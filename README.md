@@ -31,7 +31,7 @@ Documentation can be found hosted on this GitHub [repository](https://github.com
 
 ## How to use
 
-First declare `Parameters` (fixed exogenous values) and `Variables` (found endogenously by the solver), each with a `name`, and optional `description` and `initial_value`
+First declare [`Parameter`](https://slevey087.github.io/SFCmodeler/term.html#parameter)s (fixed exogenous values) and [`Variable`](https://slevey087.github.io/SFCmodeler/term.html#variable)s (found endogenously by the solver), each with a `name`, and optional `description` and `initial_value`
 
 ``` python
 Variable.default_value = 10  # This sets a default initial value for Variables
@@ -84,4 +84,12 @@ model.data
 | 2009 | 36.1712 | 5 | 8.23423 | 37.7883 | 41.0225 | 41.1712 | 0.6 | 0.4 | 0.2 |
 | 2010 | 33.6833 | 5 | 7.73666 | 35.0516 | 37.7883 | 38.6833 | 0.6 | 0.4 | 0.2 |
 
-`.data` returns an object that is a fancy pandas `DataFrame`, such that you can use variables
+`.data` returns a [`ModelResults`](https://slevey087.github.io/SFCmodeler/modelresults.html#modelresults) object, which is a fancy pandas `DataFrame` such that you can use your parameters and variables as indexers, or also calculated expressions, and also quickly plot:
+
+``` python
+model.data[[Y,C(-1),alpha1*Y]].plot()
+```
+
+![](index_files/figure-commonmark/cell-5-output-1.png)
+
+See the other doc pages for more details and additional features.

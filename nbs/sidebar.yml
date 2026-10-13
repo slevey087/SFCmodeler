@@ -2,4 +2,9 @@ website:
   sidebar:
     contents:
       - index.ipynb
-      - 00_core.ipynb
+      - 00_init.ipynb
+      - 01_modeler.ipynb
+      - 02_term.ipynb
+      - 03_modelresults.ipynb
+      - 04_misc.ipynb
+      - 05_model_tests.ipynb
