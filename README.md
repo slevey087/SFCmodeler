@@ -11,11 +11,7 @@
 $ pip install SFCmodeler
 ```
 
-or from [conda](https://anaconda.org/slevey087/SFCmodeler)
-
-``` sh
-$ conda install -c slevey087 SFCmodeler
-```
+(Doesn’t work yet :)
 
 Install latest from the GitHub [repository](https://github.com/slevey087/SFCmodeler):
 
