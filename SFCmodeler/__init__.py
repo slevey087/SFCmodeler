@@ -9,4 +9,4 @@ from .SFCmodel import SFCmodel
 from .term import Term, Variable, Parameter
 from .modelresults import ModelResults
 
-__all__  = ['SFCmodel','ModelResults','Term','Parameter','Variable']
+__all__  = ['SFCmodel','ModelResults','Term','Parameter','Variable',"d","if_true"]
