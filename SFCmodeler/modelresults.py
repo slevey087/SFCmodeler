@@ -107,6 +107,10 @@ class ModelResults():
     return (self.pct_change()*100)[1:]
 
 
+  def copy(self):
+    return ModelResults(self.df.copy())
+
+    
   def __len__(self):
     return len(self.df)
 

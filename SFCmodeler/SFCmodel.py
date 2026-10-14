@@ -93,7 +93,17 @@ class SFCmodel:
               return float(val)
       return float("nan")
 
-
+    
+    def equation_values(self, variable):
+        "Returns the data for all the values in the equation for a specified variable."
+        eqn = [eqn for eqn in model.equations if eqn.lhs == variable][0]
+        try:
+            from IPython.display import display
+        except ImportError:
+            display = print
+        display(eqn)
+        return model.data[[variable] + sorted(list(eqn.rhs.free_symbols),key=str)]
+    
 
     def carry_forward(self):
         if self.data.df.iloc[-1].isna().any():
@@ -119,7 +129,7 @@ class SFCmodel:
 
 
 
-    def solve(self, periods=1, redundant_tol=1e-6, **kwargs):
+    def solve(self, periods=1, steady=False, redundant_tol=1e-6, **kwargs):
         with tqdm(total=periods+1) as bar:
           bar.set_description("Compiling mode")
 
@@ -136,7 +146,7 @@ class SFCmodel:
           bar.update(1)
           bar.set_description("Solving")
 
-          for _ in range(periods):
+          for t in range(periods):
             self.carry_forward()
 
             if len(self.data.df) == 1:
@@ -175,11 +185,24 @@ class SFCmodel:
                     stacklevel=2,
                 )
 
+
+            if steady:
+                if self.check_steady_state(**(steady if isinstance(steady, dict) else {})):
+                    return self.data
+                if t == periods - 1:
+                    warnings.warn("Reached end of alloted timesteps but did not find steady-state.", stacklevel=2)
+              
             bar.update(1)
 
         return self.data
 
+    
+    def check_steady_state(self, ignore=[], growth=[], **kwargs):
+        levels = self.data.df[[var for var in self.variables if var not in growth + ignore]]
+        growth = self.data.df[growth].pct_change()
+        return np.isclose(levels.iloc[-2],levels.iloc[-1]).all() and np.isclose(growth.iloc[-2],growth.iloc[-1]).all()
 
+    
     def check_redundant_equation(self,redundant_tol=1e-6):
       if self.redundant_equation is not None:
           redundant = self.redundant_equation
