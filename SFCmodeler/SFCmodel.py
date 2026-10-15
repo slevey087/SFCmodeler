@@ -130,8 +130,8 @@ class SFCmodel:
 
 
     def solve(self, periods=1, steady=False, redundant_tol=1e-6, **kwargs):
-        with tqdm(total=periods+1) as bar:
-          bar.set_description("Compiling mode")
+        with tqdm(total=periods) as bar:
+          bar.set_description("Compiling")
 
           residuals = [eq.lhs - eq.rhs for eq in self.equations]
           args = self.endogenous + self.lags + self.parameters
@@ -143,7 +143,6 @@ class SFCmodel:
             redundant_syms = list(redundant.free_symbols)
             redundant_func = sp.lambdify(redundant_syms, [redundant.lhs, redundant.rhs], modules="numpy")
 
-          bar.update(1)
           bar.set_description("Solving")
 
           for t in range(periods):
@@ -188,6 +187,7 @@ class SFCmodel:
 
             if steady:
                 if self.check_steady_state(**(steady if isinstance(steady, dict) else {})):
+                    bar.set_description("Reached steady state")
                     return self.data
                 if t == periods - 1:
                     warnings.warn("Reached end of alloted timesteps but did not find steady-state.", stacklevel=2)
@@ -198,9 +198,10 @@ class SFCmodel:
 
     
     def check_steady_state(self, ignore=[], growth=[], **kwargs):
+        if not "rtol" in kwargs: kwargs['rtol'] = 1e-4
         levels = self.data.df[[var for var in self.variables if var not in growth + ignore]]
         growth = self.data.df[growth].pct_change()
-        return np.isclose(levels.iloc[-2],levels.iloc[-1]).all() and np.isclose(growth.iloc[-2],growth.iloc[-1]).all()
+        return np.isclose(levels.iloc[-2],levels.iloc[-1],**kwargs).all() and np.isclose(growth.iloc[-2],growth.iloc[-1],**kwargs).all()
 
     
     def check_redundant_equation(self,redundant_tol=1e-6):
