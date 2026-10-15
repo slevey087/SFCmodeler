@@ -199,9 +199,31 @@ class SFCmodel:
     
     def check_steady_state(self, ignore=[], growth=[], **kwargs):
         if not "rtol" in kwargs: kwargs['rtol'] = 1e-4
+        if "rtol_g" in kwargs:
+            rtol_g = kwargs['rtol_g'] 
+            del kwargs['rtol_g']
+        else:
+            rtol_g = 0
+        if "atol_g" in kwargs:
+            atol_g = kwargs['atol_g'] 
+            del kwargs['atol_g']
+        else:
+            atol_g = 1e-5
+        
+        
+        growth += [lag for lag in self.lags if lag.unlagged in growth]
+        ignore += [lag for lag in self.lags if lag.unlagged in ignore]
+        
         levels = self.data.df[[var for var in self.variables if var not in growth + ignore]]
         growth = self.data.df[growth].pct_change()
-        return np.isclose(levels.iloc[-2],levels.iloc[-1],**kwargs).all() and np.isclose(growth.iloc[-2],growth.iloc[-1],**kwargs).all()
+        
+        levels = np.isclose(levels.iloc[-2],levels.iloc[-1],**kwargs).all()
+        
+        kwargs['rtol'] = rtol_g
+        kwargs['atol'] = atol_g
+        growth = np.isclose(growth.iloc[-2],growth.iloc[-1],**kwargs).all()
+        
+        return levels and growth
 
     
     def check_redundant_equation(self,redundant_tol=1e-6):
