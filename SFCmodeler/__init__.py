@@ -6,8 +6,8 @@ __all__ = []
 
 # %% ../nbs/00_init.ipynb #5945edfe-119f-4887-870f-12f174c904cd
 from .SFCmodel import SFCmodel
-from .term import Term, Variable, Parameter
+from .term import Term, Variable, Parameter, Random
 from .modelresults import ModelResults
 from .misc import d, if_true
 
-__all__  = ['SFCmodel','ModelResults','Term','Parameter','Variable',"d","if_true"]
+__all__  = ['SFCmodel','ModelResults','Term','Parameter','Variable','Random',"d","if_true"]

@@ -15,16 +15,16 @@ import sympy as sp
 from scipy.optimize import root
 from tqdm.auto import tqdm
 
-from .term import Term, Variable, Parameter
+from .term import Term, Variable, Parameter, Random
 from .modelresults import ModelResults
 
 # %% ../nbs/01_modeler.ipynb #da4d26dd
 class SFCmodel:
     def __init__(self, equations=None, redundant_equation=None,start_period="2000",freq="Y"):
-        self.equations = equations or []
+        self.equations = equations
         self.terms = sorted(list({sym for eq in self.equations for sym in eq.free_symbols}), key=str)
-        self.lags = [var for var in self.terms if var.lag != 0]
-        self.parameters = [var for var in self.terms if isinstance(var, Parameter) and var.lag == 0]
+        self.lags = [term for term in self.terms if term.lag != 0]
+        self.parameters = [term for term in self.terms if isinstance(term, Parameter) and term.lag == 0]
 
         for term in list(self.lags):
           # capture only-lagged parameters
@@ -36,6 +36,10 @@ class SFCmodel:
             if mid not in self.terms: self.terms.append(mid)
             if mid not in self.lags: self.lags.append(mid)
 
+        self.growth = [var for var in self.terms if isinstance(var, Variable) and var.growth]
+
+        self.random = [term for term in self.terms if isinstance(term, Random) and term.lag == 0]
+        
         self.variables = [var for var in self.terms if isinstance(var, Variable) and var not in self.lags]
         self.endogenous = [eq.lhs for eq in self.equations]
 
@@ -117,6 +121,9 @@ class SFCmodel:
         for param in self.parameters:
             new_row[param] = self.data.df[param].iloc[-1]
 
+        for rv in self.random:
+            new_row[rv] = rv.distribution.rvs(random_state = Random.generator)
+
         # History shifts by one period: Y(-1) <- Y, Y(-2) <- Y(-1), ...
         last = self.data.df.iloc[-1]
         for lag in self.lags:
@@ -133,8 +140,11 @@ class SFCmodel:
         with tqdm(total=periods) as bar:
           bar.set_description("Compiling")
 
+          if steady and self.random:
+              warnings.warn("Seeking steady state in model with random variables", stacklevel=2)
+            
           residuals = [eq.lhs - eq.rhs for eq in self.equations]
-          args = self.endogenous + self.lags + self.parameters
+          args = self.endogenous + self.lags + self.parameters + self.random
           raw_func = sp.lambdify(args, residuals, modules="numpy")
           raw_jac = sp.lambdify(args, sp.Matrix(residuals).jacobian(self.endogenous), modules="numpy",cse=True)
 
@@ -142,7 +152,7 @@ class SFCmodel:
             redundant = self.redundant_equation
             redundant_syms = list(redundant.free_symbols)
             redundant_func = sp.lambdify(redundant_syms, [redundant.lhs, redundant.rhs], modules="numpy")
-
+            
           bar.set_description("Solving")
 
           for t in range(periods):
@@ -155,7 +165,7 @@ class SFCmodel:
                   "Set them with model[term] = value, or change Term.default_value.")
 
 
-            known_vals = self.data.df.iloc[-1][self.lags + self.parameters].to_numpy(dtype=float)
+            known_vals = self.data.df.iloc[-1][self.lags + self.parameters + self.random].to_numpy(dtype=float)
 
             # Wrap function to flatten output from shape (N, 1) to (N,)
             def residual_func(x):
@@ -197,7 +207,7 @@ class SFCmodel:
         return self.data
 
     
-    def check_steady_state(self, ignore=[], growth=[], **kwargs):
+    def check_steady_state(self, ignore=[], **kwargs):
         if not "rtol" in kwargs: kwargs['rtol'] = 1e-4
         if "rtol_g" in kwargs:
             rtol_g = kwargs['rtol_g'] 
@@ -211,11 +221,10 @@ class SFCmodel:
             atol_g = 1e-5
         
         
-        growth += [lag for lag in self.lags if lag.unlagged in growth]
         ignore += [lag for lag in self.lags if lag.unlagged in ignore]
         
-        levels = self.data.df[[var for var in self.variables if var not in growth + ignore]]
-        growth = self.data.df[growth].pct_change()
+        levels = self.data.df[list(set(self.variables) - set(self.growth) - set(ignore))]
+        growth = self.data.df[self.growth].pct_change()
         
         levels = np.isclose(levels.iloc[-2],levels.iloc[-1],**kwargs).all()
         
