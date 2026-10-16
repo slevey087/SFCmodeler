@@ -13,6 +13,7 @@ import numpy as np
 import pandas as pd
 from scipy.stats import norm
 from sympy.printing.latex import translate
+import re
 
 # %% ../nbs/02_term.ipynb #7eb15360-b4d3-42e9-bfc4-db0b5685224a
 class Term(sp.Symbol):
@@ -42,12 +43,16 @@ class Term(sp.Symbol):
 
 
   def _latex(self, printer):
-    # add lag to any subscript
-    name, *subs = self.base_name.split("_")
-    subs = [translate(s) for s in subs] + ([str(self.lag)] if self.lag else [])
+    # split the name on "_" (subscript) and "^" (superscript), in any order
+    name, *rest = re.split(r"([_^])", self.base_name)
+    subs, sups = [], []
+    for op, val in zip(rest[::2], rest[1::2]):
+        (subs if op == "_" else sups).append(translate(val.strip("{}")))
+    if self.lag: subs.append(str(self.lag))   # lag joins the subscript
     out = translate(name)
-    return out + ("_{" + ",".join(subs) + "}" if subs else "")
-
+    if subs: out += "_{" + ",".join(subs) + "}"
+    if sups: out += "^{" + ",".join(sups) + "}"
+    return out
 
 # %% ../nbs/02_term.ipynb #b245b1fa-3713-4a9c-9216-8a0b7605ab42
 class Parameter(Term):
