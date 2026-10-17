@@ -27,11 +27,11 @@ from SFCmodeler import *
 
 ### Documentation
 
-Documentation can be found hosted on this GitHub [repository](https://github.com/slevey087/SFCmodeler)’s [pages](https://slevey087.github.io/SFCmodeler/). Additionally you can find package manager specific guidelines on [conda](https://anaconda.org/slevey087/SFCmodeler) and [pypi](https://pypi.org/project/SFCmodeler/) respectively.
+Documentation can be found hosted on this GitHub [repository](https://github.com/slevey087/SFCmodeler)’s [pages](https://slevey087.github.io/SFCmodeler/). Additionally you can find package manager specific guidelines on [pypi](https://pypi.org/project/SFCmodeler/).
 
 ## How to use
 
-First declare [`Parameter`](https://slevey087.github.io/SFCmodeler/term.html#parameter)s (fixed exogenous values) and [`Variable`](https://slevey087.github.io/SFCmodeler/term.html#variable)s (found endogenously by the solver), each with a `name`, and optional `description` and `initial_value`
+First declare [`Parameter`](https://slevey087.github.io/SFCmodeler/term.html#parameter)s (fixed exogenous values), [`Variable`](https://slevey087.github.io/SFCmodeler/term.html#variable)s (found endogenously by the solver), and any [`Random`](https://slevey087.github.io/SFCmodeler/term.html#random) elements, each with a `name` and optional `description` and `initial_value`
 
 ``` python
 Variable.default_value = 10  # This sets a default initial value for Variables
@@ -60,15 +60,13 @@ model = SFCmodel(
 )
 ```
 
-Run `.solve()` to solve one period forward, or specify a number of periods to solve more than one time step, and then manipulate the results using `.data`:
+Run `.solve()` to solve one period forward, or specify a number of periods to solve more than one time step:
 
 ``` python
-model.solve(10)
-
-model.data
+model.solve(5)
 ```
 
-      0%|          | 0/11 [00:00<?, ?it/s]
+      0%|          | 0/5 [00:00<?, ?it/s]
 
 |  | $C$ | $G$ | $T$ | $V$ | $V_{-1}$ | $Y$ | $\alpha_{1}$ | $\alpha_{2}$ | $\theta$ |
 |:---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
@@ -78,18 +76,55 @@ model.data
 | 2003 | 64.0601 | 5 | 13.812 | 68.4661 | 77.2781 | 69.0601 | 0.6 | 0.4 | 0.2 |
 | 2004 | 57.2816 | 5 | 12.4563 | 61.0098 | 68.4661 | 62.2816 | 0.6 | 0.4 | 0.2 |
 | 2005 | 51.546 | 5 | 11.3092 | 54.7006 | 61.0098 | 56.546 | 0.6 | 0.4 | 0.2 |
-| 2006 | 46.6927 | 5 | 10.3385 | 49.362 | 54.7006 | 51.6927 | 0.6 | 0.4 | 0.2 |
-| 2007 | 42.5862 | 5 | 9.51723 | 44.8448 | 49.362 | 47.5862 | 0.6 | 0.4 | 0.2 |
-| 2008 | 39.1114 | 5 | 8.82228 | 41.0225 | 44.8448 | 44.1114 | 0.6 | 0.4 | 0.2 |
-| 2009 | 36.1712 | 5 | 8.23423 | 37.7883 | 41.0225 | 41.1712 | 0.6 | 0.4 | 0.2 |
-| 2010 | 33.6833 | 5 | 7.73666 | 35.0516 | 37.7883 | 38.6833 | 0.6 | 0.4 | 0.2 |
 
-`.data` returns a [`ModelResults`](https://slevey087.github.io/SFCmodeler/modelresults.html#modelresults) object, which is a fancy pandas `DataFrame` such that you can use your parameters and variables as indexers, or also calculated expressions, and also quickly plot:
+Easily shock a model by changing a parameter value with this shortcut:
 
 ``` python
-model.data[[Y,C(-1),alpha1*Y]].plot()
+model[alpha1] = 0.7
+
+model.solve(5)
 ```
 
-![](index_files/figure-commonmark/cell-5-output-1.png)
+      0%|          | 0/5 [00:00<?, ?it/s]
+
+|  | $C$ | $G$ | $T$ | $V$ | $V_{-1}$ | $Y$ | $\alpha_{1}$ | $\alpha_{2}$ | $\theta$ |
+|:---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 2000 | 10 | 5 | 10 | 100 | 100 | 10 | 0.6 | 0.4 | 0.2 |
+| 2001 | 81.5385 | 5 | 17.3077 | 87.6923 | 100 | 86.5385 | 0.6 | 0.4 | 0.2 |
+| 2002 | 72.071 | 5 | 15.4142 | 77.2781 | 87.6923 | 77.071 | 0.6 | 0.4 | 0.2 |
+| 2003 | 64.0601 | 5 | 13.812 | 68.4661 | 77.2781 | 69.0601 | 0.6 | 0.4 | 0.2 |
+| 2004 | 57.2816 | 5 | 12.4563 | 61.0098 | 68.4661 | 62.2816 | 0.6 | 0.4 | 0.2 |
+| 2005 | 51.546 | 5 | 11.3092 | 54.7006 | 61.0098 | 56.546 | 0.6 | 0.4 | 0.2 |
+| 2006 | 56.0914 | 5 | 12.2183 | 47.4823 | 54.7006 | 61.0914 | 0.7 | 0.4 | 0.2 |
+| 2007 | 49.5294 | 5 | 10.9059 | 41.5764 | 47.4823 | 54.5294 | 0.7 | 0.4 | 0.2 |
+| 2008 | 44.1604 | 5 | 9.83208 | 36.7443 | 41.5764 | 49.1604 | 0.7 | 0.4 | 0.2 |
+| 2009 | 39.7676 | 5 | 8.95352 | 32.7908 | 36.7443 | 44.7676 | 0.7 | 0.4 | 0.2 |
+| 2010 | 36.1735 | 5 | 8.2347 | 29.5561 | 32.7908 | 41.1735 | 0.7 | 0.4 | 0.2 |
+
+`.data` holds a [`ModelResults`](https://slevey087.github.io/SFCmodeler/modelresults.html#modelresults) object, which is a fancy pandas `DataFrame` such that you can use your parameters and variables as indexers, or also calculated expressions, and also quickly plot:
+
+``` python
+model.data[[Y, C(-1), alpha1*Y]]
+```
+
+|      |     $Y$ | $C_{-1}$ | $\alpha_{1} Y$ |
+|:-----|--------:|---------:|---------------:|
+| 2000 |      10 |      nan |              6 |
+| 2001 | 86.5385 |       10 |        51.9231 |
+| 2002 |  77.071 |  81.5385 |        46.2426 |
+| 2003 | 69.0601 |   72.071 |         41.436 |
+| 2004 | 62.2816 |  64.0601 |         37.369 |
+| 2005 |  56.546 |  57.2816 |        33.9276 |
+| 2006 | 61.0914 |   51.546 |         42.764 |
+| 2007 | 54.5294 |  56.0914 |        38.1705 |
+| 2008 | 49.1604 |  49.5294 |        34.4123 |
+| 2009 | 44.7676 |  44.1604 |        31.3373 |
+| 2010 | 41.1735 |  39.7676 |        28.8214 |
+
+``` python
+model.data[[Y, C(-1), alpha1*Y]].plot()
+```
+
+![](index_files/figure-commonmark/cell-7-output-1.png)
 
 See the other doc pages for more details and additional features.
