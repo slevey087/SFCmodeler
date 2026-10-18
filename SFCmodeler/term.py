@@ -42,7 +42,7 @@ class Term(sp.Symbol):
     return base if total == 0 else type(self)(self.base_name, lag=total, unlagged=base)
 
 
-  def _latex(self, printer):
+  def _latex(self, printer=None):
     # split the name on "_" (subscript) and "^" (superscript), in any order
     name, *rest = re.split(r"([_^])", self.base_name)
     subs, sups = [], []

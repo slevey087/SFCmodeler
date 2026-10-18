@@ -200,14 +200,14 @@ class SFCmodel:
                     bar.set_description("Reached steady state")
                     return self.data
                 if t == periods - 1:
-                    warnings.warn("Reached end of alloted timesteps but did not find steady-state.", stacklevel=2)
+                    warnings.warn(f"Reached end of alloted timesteps but did not find steady-state. {self.check_steady_state(detail=True)['not converged']} have not converged", stacklevel=2)
               
             bar.update(1)
 
         return self.data
 
     
-    def check_steady_state(self, ignore=[], **kwargs):
+    def check_steady_state(self, ignore=[], detail=False, **kwargs):
         if not "rtol" in kwargs: kwargs['rtol'] = 1e-4
         if "rtol_g" in kwargs:
             rtol_g = kwargs['rtol_g'] 
@@ -226,13 +226,20 @@ class SFCmodel:
         levels = self.data.df[list(set(self.variables) - set(self.growth) - set(ignore))]
         growth = self.data.df[self.growth].pct_change()
         
-        levels = np.isclose(levels.iloc[-2],levels.iloc[-1],**kwargs).all()
+        levels_close = np.isclose(levels.iloc[-2],levels.iloc[-1],**kwargs)
         
         kwargs['rtol'] = rtol_g
         kwargs['atol'] = atol_g
-        growth = np.isclose(growth.iloc[-2],growth.iloc[-1],**kwargs).all()
-        
-        return levels and growth
+        growth_close = np.isclose(growth.iloc[-2],growth.iloc[-1],**kwargs)
+
+        if not detail:
+            return levels_close.all() and growth_close.all()
+        else:
+            return {
+                'converged':sorted(levels.columns[levels_close].to_list() + growth.columns[growth_close].to_list(),key=str),
+                'not converged':sorted(levels.columns[~levels_close].to_list() + growth.columns[~growth_close].to_list(),key=str)
+            }
+            
 
     
     def check_redundant_equation(self,redundant_tol=1e-6):
