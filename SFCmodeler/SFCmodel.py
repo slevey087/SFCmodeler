@@ -200,7 +200,7 @@ class SFCmodel:
                     bar.set_description("Reached steady state")
                     return self.data
                 if t == periods - 1:
-                    warnings.warn(f"Reached end of alloted timesteps but did not find steady-state. {self.check_steady_state(detail=True)['not converged']} have not converged", stacklevel=2)
+                    warnings.warn(f"Reached end of alloted timesteps but did not find steady-state. {self.check_steady_state(detail=True,**(steady if isinstance(steady, dict) else {}))['not converged']} have not converged", stacklevel=2)
               
             bar.update(1)
 
