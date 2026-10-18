@@ -224,7 +224,7 @@ class SFCmodel:
         ignore += [lag for lag in self.lags if lag.unlagged in ignore]
         
         levels = self.data.df[list(set(self.variables) - set(self.growth) - set(ignore))]
-        growth = self.data.df[self.growth].pct_change()
+        growth = self.data.df[list(set(self.growth) - set(ignore))].pct_change()
         
         levels_close = np.isclose(levels.iloc[-2],levels.iloc[-1],**kwargs)
         
