@@ -66,9 +66,7 @@ class SFCmodel:
             raise TypeError(f"Key must be a Term or [:], not {type(key).__name__}")
 
         unknown = [k for k in items if k not in self.data.df.columns]
-        if unknown:
-            raise KeyError(f"Not in this model: {unknown}")
-
+        if unknown: raise KeyError(f"Not in this model: {unknown}")
 
         if len(self.data.df) > 1:
           # doing a shock, rather than editing initial conditions
@@ -83,16 +81,25 @@ class SFCmodel:
                 stacklevel=2,
             )
 
-        self.data.df.loc[self.data.df.index[-1], list(items)] = list(items.values())
+        lag_map = {}
+        if len(self.data.df) == 1: # if initial condition, set any na lags too
+            lag_map = {unlag: [lag for lag in self.lags if lag.unlagged==unlag] for unlag in set([lag.unlagged for lag in self.lags])}
+        for key, value in items.items():
+            if isinstance(value,(Term, sp.Expr)): value = self[value] # for setting by formula 
+            self.data.df.loc[self.data.df.index[-1], key] = value
+            if lag_map and key in lag_map: 
+                for lag in lag_map[key]: # only set initial lags if they don't have a value
+                    if pd.isna(self[lag]): self.data.df.loc[self.data.df.index[-1], lag] = value
+                                
 
 
     def __getitem__(self, key):
-      if not isinstance(key, Term):
-          raise TypeError(f"Key must be a Term, not {type(key)}")
+      if not isinstance(key, (Term, sp.Expr)):
+          raise TypeError(f"Key must be a Term or valid sympy Expression, not {type(key)}")
 
-      col = self.data.df[key]
-      prev = col.iloc[-2] if len(col) > 1 else pd.NA
-      for val in (col.iloc[-1], prev):
+      col = self.data[key]
+      prev = col.iloc[-2].squeeze() if len(col) > 1 else np.nan
+      for val in (col.iloc[-1].squeeze(), prev):
           if not pd.isna(val):
               return float(val)
       return float("nan")
@@ -109,6 +116,14 @@ class SFCmodel:
         return model.data[[variable] + sorted(list(eqn.rhs.free_symbols),key=str)]
     
 
+    def inventory(self, period="Initial"):
+        inventory = model.data[[term for term in self.terms if term not in self.lags]][0 if period == "Initial" else period].copy().T
+        inventory.columns = [f"{period} Value"]
+        inventory = pd.concat([pd.Series([term.description for term in inventory.index],index=inventory.index,name="Description"),inventory],axis=1)
+        inventory.index = [sp.latex(term,mode="inline") for term in inventory.index]
+        return inventory
+
+    
     def carry_forward(self):
         if self.data.df.iloc[-1].isna().any():
           return  # Model hasn't been solved yet
