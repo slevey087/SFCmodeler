@@ -182,14 +182,17 @@ class SFCmodel:
 
             known_vals = self.data.df.iloc[-1][self.lags + self.parameters + self.random].to_numpy(dtype=float)
 
-            # Wrap function to flatten output from shape (N, 1) to (N,)
-            def residual_func(x):
-                return np.array(raw_func(*x, *known_vals), dtype=float).flatten()
-            def jac_func(x):
-                return np.array(raw_jac(*x, *known_vals), dtype=float)
-
             # Initial guess
             x0 = self.data.df[self.endogenous].iloc[-2].values.astype(float)
+            scale = np.maximum(np.abs(x0), 1e-3)
+              
+            # Wrap function to flatten output from shape (N, 1) to (N,)
+            def residual_func(x):
+                return np.array(raw_func(*x, *known_vals), dtype=float).flatten() / scale
+            def jac_func(x):
+                return np.array(raw_jac(*x, *known_vals), dtype=float) / scale[:, None]
+
+            
 
             solution = root(residual_func, x0, jac=jac_func,**kwargs)
             if not solution.success:
