@@ -63,7 +63,7 @@ class ModelResults():
     return self.df.__repr__()
 
   def _repr_markdown_(self):
-    return self.df.rename(columns=lambda col:sp.latex(col,mode="inline")).to_markdown()
+    return self.df.rename(columns=lambda col:sp.latex(col,mode="inline",mul_symbol='dot')).to_markdown()
 
   _repr_html_ = None
 
@@ -100,7 +100,7 @@ class ModelResults():
         return fig
 
     if vars_list is None:
-      return self.df.rename(columns=lambda col:sp.latex(col,mode="inline")).plot(**kwargs)
+      return self.df.rename(columns=lambda col:sp.latex(col,mode="inline",mul_symbol='dot')).plot(**kwargs)
     return self[vars_list].plot(**kwargs)
 
   def growth(self):
