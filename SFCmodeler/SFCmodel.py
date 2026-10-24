@@ -117,7 +117,7 @@ class SFCmodel:
     
 
     def inventory(self, period="Initial"):
-        inventory = model.data[[term for term in self.terms if term not in self.lags]][0 if period == "Initial" else period].copy().T
+        inventory = self.data[[term for term in self.terms if term not in self.lags]][0 if period == "Initial" else period].copy().T
         inventory.columns = [f"{period} Value"]
         inventory = pd.concat([pd.Series([term.description for term in inventory.index],index=inventory.index,name="Description"),inventory],axis=1)
         inventory.index = [sp.latex(term,mode="inline") for term in inventory.index]
