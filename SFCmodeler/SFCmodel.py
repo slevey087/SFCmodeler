@@ -107,13 +107,13 @@ class SFCmodel:
     
     def equation_values(self, variable):
         "Returns the data for all the values in the equation for a specified variable."
-        eqn = [eqn for eqn in model.equations if eqn.lhs == variable][0]
+        eqn = [eqn for eqn in self.equations if eqn.lhs == variable][0]
         try:
             from IPython.display import display
         except ImportError:
             display = print
         display(eqn)
-        return model.data[[variable] + sorted(list(eqn.rhs.free_symbols),key=str)]
+        return self.data[[variable] + sorted(list(eqn.rhs.free_symbols),key=str)]
     
 
     def inventory(self, period="Initial"):
