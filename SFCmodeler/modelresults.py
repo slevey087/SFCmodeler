@@ -14,12 +14,15 @@ import matplotlib.pyplot as plt
 
 # %% ../nbs/03_modelresults.ipynb #b8da32ca-3028-47e9-9690-53d7363f214e
 class ModelResults():
-  def __init__(self, results,index=None,start_period="2000",freq="Y",debuglist=False):
+  def __init__(self, results,index=None,start_period="2000",freq="Y",reindex=False,debuglist=False):
     self.debuglist = debuglist
 
     if isinstance(results, pd.Series):
       results = results.to_frame()
+    if isinstance(results, ModelResults):
+        results = results.df.copy()
     if isinstance(results,pd.DataFrame):
+      if reindex: results.index = pd.period_range(start=start_period,periods=len(results),freq=freq)
       self.df = results
     else:
       if isinstance(results, dict):
