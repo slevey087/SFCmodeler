@@ -10,6 +10,7 @@ from __future__ import annotations
 from collections.abc import Callable
 
 import sympy as sp
+sp.init_printing(order="none")
 
 from .term import Term, Variable, Parameter
 from .SFCmodel import SFCmodel
@@ -168,7 +169,7 @@ class Transaction:
 # %% ../nbs/04_representations.ipynb #c3733bba-a74e-4dc2-a520-dc1ecd998653
 class TFmatrix:
   "Class representing the Transactions Flow matrix."
-  def __init__(self, sectors, transactions, assets=None):
+  def __init__(self, sectors:list[Sector], transactions:list[Transaction], assets:list[Asset] | None=None):
     self.sectors = sectors
     self.transactions = transactions
     self.assets = assets
@@ -190,7 +191,7 @@ class TFmatrix:
     entries = {sector: -d(asset.demands[sector] if (asset.demands is not None and sector in asset.demands) else asset.supplies[sector]) * asset.price for sector in asset.holders()}
     if asset.issuer is not None:
         issued = (d(asset.total_supply) if asset.total_supply is not None
-                  else sp.Add(*[d(asset.supplies[sector] if (asset.supplies is not None and sector in asset.demands) else asset.demands[sector]) for sector in asset.holders()]))
+                  else sp.Add(*[d(asset.supplies[sector] if (asset.supplies is not None and sector in asset.supplies) else asset.demands[sector]) for sector in asset.holders()]))
         entries[asset.issuer] = entries.get(asset.issuer, 0) + issued * asset.price
     return Transaction(entries)
 
@@ -212,9 +213,9 @@ class TFmatrix:
 
 # %% ../nbs/04_representations.ipynb #81217b23-aa51-44be-b95b-2c1b27b7c2e3
 class RVmatrix:
-    def __init__(self, assets:list[Asset], sectors:list[Sector]):
-        self.assets = assets
+    def __init__(self, sectors:list[Sector], assets:list[Asset]):
         self.sectors = sectors
+        self.assets = assets
         
         self.entries = {(asset, sector):RVmatrix.gain_expression(asset.demands[sector] if sector in asset.demands else (asset.supplies[sector] if sector in asset.supplies else asset.total_supply), asset.price) for asset in assets for sector in sectors if (sector in asset or asset.issuer == sector)}
         
