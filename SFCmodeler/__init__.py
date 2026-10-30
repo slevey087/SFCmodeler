@@ -9,6 +9,6 @@ from .SFCmodel import SFCmodel
 from .term import Term, Variable, Parameter, Random
 from .modelresults import ModelResults
 from .misc import lag, d, if_true, solve_for
-from .representations import Sector, Asset, BSmatrix, TFmatrix, RVmatrix
+from .representations import Sector, Asset, Transaction, BSmatrix, TFmatrix, RVmatrix
 
-__all__  = ['SFCmodel','ModelResults','Term','Parameter','Variable','Random',"lag","d","if_true","solve_for","Sector","Asset","BSmatrix","TFmatrix","RVmatrix"]
+__all__  = ['SFCmodel','ModelResults','Term','Parameter','Variable','Random',"lag","d","if_true","solve_for","Sector","Asset","Transaction","BSmatrix","TFmatrix","RVmatrix"]
