@@ -60,6 +60,8 @@ model = SFCmodel(
 )
 ```
 
+You can automate the generation of some of the equations, using the [`Sector`](https://slevey087.github.io/SFCmodeler/representations.html#sector), [`Asset`](https://slevey087.github.io/SFCmodeler/representations.html#asset), [`BSmatrix`](https://slevey087.github.io/SFCmodeler/representations.html#bsmatrix), [`TFmatrix`](https://slevey087.github.io/SFCmodeler/representations.html#tfmatrix), and [`RVmatrix`](https://slevey087.github.io/SFCmodeler/representations.html#rvmatrix) classes. See the page on `Representations` for more details.
+
 Run `.solve()` to solve one period forward, or specify a number of periods to solve more than one time step:
 
 ``` python

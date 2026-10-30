@@ -8,6 +8,6 @@ __all__ = []
 from .SFCmodel import SFCmodel
 from .term import Term, Variable, Parameter, Random
 from .modelresults import ModelResults
-from .misc import d, if_true
+from .misc import lag, d, if_true, solve_for
 
-__all__  = ['SFCmodel','ModelResults','Term','Parameter','Variable','Random',"d","if_true"]
+__all__  = ['SFCmodel','ModelResults','Term','Parameter','Variable','Random',"lag","d","if_true","solve_for"]
