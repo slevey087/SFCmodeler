@@ -7,6 +7,16 @@ Docs: https://slevey087.github.io/SFCmodeler/representations.html.md"""
 # %% auto #0
 __all__ = ['Sector', 'Asset', 'BSmatrix', 'Transaction', 'TFmatrix', 'RVmatrix']
 
+# %% ../nbs/04_representations.ipynb #d493f4e7-dcb9-4aa1-ba4b-f13a0ad7eb8a
+from collections.abc import Callable
+
+import sympy as sp
+
+from .term import Term, Variable, Parameter
+from .SFCmodel import SFCmodel
+from .modelresults import ModelResults
+from .misc import lag, d, solve_for
+
 # %% ../nbs/04_representations.ipynb #8aff87d7-3218-4cba-a4e7-2d4ad174d08c
 class Sector:
   "Represents an economic sector, such as Households or Firms."
