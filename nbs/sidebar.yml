@@ -6,5 +6,6 @@ website:
       - 01_modeler.ipynb
       - 02_term.ipynb
       - 03_modelresults.ipynb
-      - 04_misc.ipynb
-      - 05_model_tests.ipynb
+      - 04_representations.ipynb
+      - 05_misc.ipynb
+      - 06_godleylavoie.ipynb

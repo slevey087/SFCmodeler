@@ -4,8 +4,10 @@ project:
 format:
   html:
     theme: cosmo
+    highlight-style: pygments 
     css: styles.css
     toc: true
+    toc-depth: 2
     keep-md: true
   commonmark: default
 
