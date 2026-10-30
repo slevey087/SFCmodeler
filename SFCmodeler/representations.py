@@ -190,7 +190,7 @@ class TFmatrix:
     entries = {sector: -d(asset.demands[sector] if (asset.demands is not None and sector in asset.demands) else asset.supplies[sector]) * asset.price for sector in asset.holders()}
     if asset.issuer is not None:
         issued = (d(asset.total_supply) if asset.total_supply is not None
-                  else sp.Add(*[d(asset.held(s)) for s in asset.holders()]))
+                  else sp.Add(*[d(asset.supplies[sector] if (asset.supplies is not None and sector in asset.demands) else asset.demands[sector]) for sector in asset.holders()]))
         entries[asset.issuer] = entries.get(asset.issuer, 0) + issued * asset.price
     return Transaction(entries)
 
