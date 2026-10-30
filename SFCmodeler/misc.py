@@ -20,6 +20,7 @@ def if_true(conditional):
 def lag(x:Term | sp.Expr | float, n:int=1) -> sp.Expr:
     "Lag every Term in `x` by n periods (x can be a Term, expression, or constant)."
     x = sp.sympify(x)
+    if x is None: return None
     return x.xreplace({t: t(-n) for t in x.free_symbols if isinstance(t, Term)})
 
 # %% ../nbs/05_misc.ipynb #368b99e7-cdf6-4a75-9b08-b8dce76292e5
