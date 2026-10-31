@@ -32,7 +32,7 @@ class Sector:
     else: return super().__repr__()
 
   def wealth_zero_expression(self, tf:TFmatrix, rv:RVmatrix) -> sp.Expr:
-      return d(V) - (-tf.change_in_sector_holdings(self) + rv.sector_expression(self))
+      return d(self.NW) - (-tf.change_in_sector_holdings(self) + rv.sector_expression(self))
 
 # %% ../nbs/04_representations.ipynb #9efd0343-8aa9-44fb-bae7-c6e0c5e569d1
 class Asset:
@@ -41,8 +41,8 @@ class Asset:
     self.issuer = issuer
     self.supplies = supplies if supplies is not None else {}
     self.demands = demands if demands is not None else {}
-    self.total_supply = total_supply
-    self.total_demand = total_demand
+    self.total_supply = total_supply if total_supply is not None else sp.Add(*self.supplies.values())
+    self.total_demand = total_demand if total_demand is not None else sp.Add(*self.demands.values())
     self.price = price
     self.payout = payout
     self.name = name
@@ -81,23 +81,25 @@ class Asset:
 
   def sector_zero_expression(self,sector:Sector | str) -> sp.Expr | None:
       "Returns the supply minus demand for a sector, but only if there are variables for both. Use 'total' to get total_supply - total_demand"
-      if sector == "total" and self.total_supply is not None and self.total_demand is not None:
+      if sector == "total" and isinstance(self.total_supply, Term) and isinstance(self.total_demand, Term):
           return self.total_supply - self.total_demand
       if sector in self.demands and sector in self.supplies:
           return self.supplies[sector] - self.demands[sector]
           
   def sector_zero_expressions(self) -> list[sp.Expr | None]:
       "Returns list of all sector zero expressions."
-      sectors = self.holders() + (['total'] if self.total_supply is not None and self.total_demand is not None else [])
+      sectors = self.holders() + (['total'] if isinstance(self.total_supply, Term) and isinstance(self.total_demand, Term) else [])
       expressions =  [self.sector_zero_expression(sector) for sector in sectors]
-      return [expression for expression in expressions if expression is not None]
+      return list(dict.fromkeys([expression for expression in expressions if expression is not None]))
 
   def market_zero_expression(self, demand_or_supply:str="supply") -> sp.Expr | None:
       "If demand_or_supply == 'supply', returns total_supply minus supply for each sector. If demand_or_supply == 'demand' returns total_demand minus demand for each sector. Uses opposite term if none is available for that sector."
-      if demand_or_supply == "supply" and self.total_supply is not None:
-          return self.total_supply - sum([(self.supplies[sector] if sector in self.supplies else self.demands[sector]) for sector in self.holders()])
-      if demand_or_supply == "demand" and self.total_demand is not None:
-          return self.total_demand - sum([(self.demands[sector] if sector in self.demands else self.supplies[sector]) for sector in self.holders()])
+      if demand_or_supply == "supply" and isinstance(self.total_supply, Term):
+          s = self.total_supply - sum([(self.supplies[sector] if sector in self.supplies else self.demands[sector]) for sector in self.holders()])
+          if s is not sp.S.Zero: return s
+      if demand_or_supply == "demand" and isinstance(self.total_demand, Term):
+          s = self.total_demand - sum([(self.demands[sector] if sector in self.demands else self.supplies[sector]) for sector in self.holders()])
+          if s is not sp.S.Zero: return s
 
 
 # %% ../nbs/04_representations.ipynb #7e833c13-709a-4180-bf1f-c33c8b0dc7d6
@@ -238,4 +240,9 @@ class RVmatrix:
     def asset_expression(self, asset:Asset) ->sp.Expr:
         "Sums all the capital gains terms for a single asset (row sum)."
         return sp.Add(*[self[asset, sector] for sector in self.sectors if self[asset, sector] != 0], evaluate = False)
+
+    def sector_zero_expressions(self, tf:TFmatrix) -> list[sp.Expr]:
+        "Returns list of all wealth_zero_expressions for each sector with a NW term."
+        sectors = [sector for sector in self.sectors if sector.NW is not None]
+        return [sector.wealth_zero_expression(tf, self) for sector in sectors]
     
