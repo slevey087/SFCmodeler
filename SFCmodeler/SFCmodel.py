@@ -55,6 +55,9 @@ class SFCmodel:
             index=pd.period_range(start_period, periods=1, freq=freq), dtype=float
         ))
 
+        self.lambdified_model = None
+        self.lambdified_jacobian = None
+
 
 
     def __setitem__(self, key, value):
@@ -150,18 +153,22 @@ class SFCmodel:
         self.data.df = pd.concat([self.data.df, new_df_row])
 
 
+    def lambdify(self):
+        residuals = [eq.lhs - eq.rhs for eq in self.equations]
+        args = self.endogenous + self.lags + self.parameters + self.random
+        self.lambdified_model = sp.lambdify(args, residuals, modules="numpy")
+        self.lambdified_jacobian = sp.lambdify(args, sp.Matrix(residuals).jacobian(self.endogenous), modules="numpy",cse=True)
+        
 
-    def solve(self, periods=1, steady=False, redundant_tol=1e-6, **kwargs):
+    def solve(self, periods=1, steady=False, scale_residuals=True, redundant_tol=1e-6, **kwargs):
         with tqdm(total=periods) as bar:
           bar.set_description("Compiling")
 
           if steady and self.random:
               warnings.warn("Seeking steady state in model with random variables", stacklevel=2)
             
-          residuals = [eq.lhs - eq.rhs for eq in self.equations]
-          args = self.endogenous + self.lags + self.parameters + self.random
-          raw_func = sp.lambdify(args, residuals, modules="numpy")
-          raw_jac = sp.lambdify(args, sp.Matrix(residuals).jacobian(self.endogenous), modules="numpy",cse=True)
+          if self.lambdified_model is None:
+              self.lambdify()
 
           if self.redundant_equation is not None:
             redundant = self.redundant_equation
@@ -179,7 +186,6 @@ class SFCmodel:
                   f"Initial values missing for {missing}. "
                   "Set them with model[term] = value, or change Term.default_value.")
 
-
             known_vals = self.data.df.iloc[-1][self.lags + self.parameters + self.random].to_numpy(dtype=float)
 
             # Initial guess
@@ -188,11 +194,11 @@ class SFCmodel:
               
             # Wrap function to flatten output from shape (N, 1) to (N,)
             def residual_func(x):
-                return np.array(raw_func(*x, *known_vals), dtype=float).flatten() / scale
+                resid = np.array(self.lambdified_model(*x, *known_vals), dtype=float).flatten()
+                return resid / scale if scale_residuals else resid
             def jac_func(x):
-                return np.array(raw_jac(*x, *known_vals), dtype=float) / scale[:, None]
-
-            
+                jac_resid = np.array(self.lambdified_jacobian(*x, *known_vals), dtype=float)
+                return jac_resid / scale[:, None] if scale_residuals else jac_resid
 
             solution = root(residual_func, x0, jac=jac_func,**kwargs)
             if not solution.success:
@@ -273,3 +279,5 @@ class SFCmodel:
           }
       else:
         raise ValueError("No redundant equation defined")
+
+
