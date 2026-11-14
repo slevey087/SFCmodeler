@@ -41,19 +41,21 @@ class Term(sp.Symbol):
     total = self.lag + int(lag)
     return base if total == 0 else type(self)(self.base_name, lag=total, unlagged=base)
 
-
   def _latex(self, printer=None):
-    # split the name on "_" (subscript) and "^" (superscript), in any order
-    name, *rest = re.split(r"([_^])", self.base_name)
+    grp = r"\{(?:[^{}]|\{[^{}]*\})*\}"                    # {...}, allowing one level of nesting
+    base, scripts = re.fullmatch(
+        rf"(\\[A-Za-z]+{grp}|[^_^]+)((?:[_^](?:{grp}|\w))*)", self.base_name
+    ).groups()                                            # base is "\hat{...}" or a plain name
     subs, sups = [], []
-    for op, val in zip(rest[::2], rest[1::2]):
-        (subs if op == "_" else sups).append(translate(val.strip("{}")))
-    if self.lag: subs.append(str(self.lag))   # lag joins the subscript
-    out = translate(name)
+    for op, val in re.findall(rf"([_^])({grp}|\w)", scripts):
+        (subs if op == "_" else sups).append(val[1:-1] if val[0] == "{" else val)
+    if self.lag: subs.append(str(self.lag))               # lag joins the subscript
+    out = base
     if subs: out += "_{" + ",".join(subs) + "}"
     if sups: out += "^{" + ",".join(sups) + "}"
-    return out
-
+    # translate bare words only (skips the "hat" in "\hat" and anything already escaped)
+    return re.sub(r"(?<![\\A-Za-z])[A-Za-z]+", lambda m: translate(m.group()), out)
+      
   @property
   def hat(self):
       return Variable(f"\\hat{{{self.name}}}") << 100 * (((self - self(-1)) / self(-1)))
