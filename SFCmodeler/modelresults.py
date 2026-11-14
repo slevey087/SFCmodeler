@@ -56,10 +56,17 @@ class ModelResults():
         if item in self.df.columns:
           series_dict[item] = self.df[item]
         else:
-          # assume it's an expression
-          terms = list(item.free_symbols)
-          func = sp.lambdify(terms, item, 'numpy')
-          series_dict[item] = func(*[self.df[term] if term in self.df.columns else self.df[term.unlagged].shift(-term.lag) for term in terms])
+          if isinstance(item, sp.Eq):
+            label = item.lhs
+            terms = list(item.rhs.free_symbols)
+            expr = item.rhs
+          else:
+            # assume it's an expression
+            label = item
+            terms = list(item.free_symbols)
+            expr = item
+          func = sp.lambdify(terms, expr, 'numpy')
+          series_dict[label] = func(*[self.df[term] if term in self.df.columns else self.df[term.unlagged].shift(-term.lag) for term in terms])
       return ModelResults(pd.DataFrame(series_dict),index=self.df.index)
 
   def __repr__(self):

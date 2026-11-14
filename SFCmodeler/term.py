@@ -54,6 +54,10 @@ class Term(sp.Symbol):
     if sups: out += "^{" + ",".join(sups) + "}"
     return out
 
+  @property
+  def hat(self):
+      return Variable(f"\\hat{{{self.name}}}") << 100 * (((self - self(-1)) / self(-1)))
+
 # %% ../nbs/02_term.ipynb #b245b1fa-3713-4a9c-9216-8a0b7605ab42
 class Parameter(Term):
   'An exogenous value, not calculated by the solver.'
