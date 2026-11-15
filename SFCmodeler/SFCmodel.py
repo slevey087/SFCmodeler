@@ -160,7 +160,7 @@ class SFCmodel:
         self.lambdified_jacobian = sp.lambdify(args, sp.Matrix(residuals).jacobian(self.endogenous), modules="numpy",cse=True)
         
 
-    def solve(self, periods=1, steady=False, scale_residuals=True, redundant_tol=1e-6, **kwargs):
+    def solve(self, periods=1, steady=False, scale_residuals=True, redundant_tol=1e-6, jacobi_backup=5, **kwargs):
         with tqdm(total=periods) as bar:
           bar.set_description("Compiling")
 
@@ -203,6 +203,13 @@ class SFCmodel:
             solution = root(residual_func, x0, jac=jac_func,**kwargs)
             if not solution.success:
               solution = root(residual_func, x0,**kwargs) # sometimes solves better without jacobian
+            if not solution.success:
+              xp = x0.copy()
+              for _ in range(jacobi_backup): # try Jacobi. This sometimes helps if there are kinks (e.g. Min/Max).
+                xp = xp - np.array(self.lambdified_model(*xp, *known_vals), dtype=float).flatten()
+                if not np.all(np.isfinite(xp)): break
+                solution = root(residual_func, xp, jac=jac_func,**kwargs)                
+                if solution.success: break # After each Jacobi pass, go back to root to see if that was sufficient.
             if not solution.success:
               raise RuntimeError(f"Solver failed for period {self.data.df.index[-1]}: {solution.message}")
 
